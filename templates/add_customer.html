@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Add Customer</h2>
+
+<form method="POST">
+
+    <input type="text" name="name" class="form-control mb-2" placeholder="Name">
+    <input type="email" name="email" class="form-control mb-2" placeholder="Email">
+    <input type="text" name="phone" class="form-control mb-2" placeholder="Phone">
+    <input type="text" name="company" class="form-control mb-2" placeholder="Company">
+    <textarea name="notes" class="form-control mb-2" placeholder="Notes"></textarea>
+
+    <button class="btn btn-primary">Save</button>
+</form>
+
+<br>
+<a href="/customers" class="btn btn-secondary">Back</a>
+
+{% endblock %}

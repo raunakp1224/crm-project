@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Dashboard</h2>
+
+<div class="row mt-4">
+
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Total Customers</h5>
+            <h3>{{ total_customers }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Total Companies</h5>
+            <h3>{{ total_companies }}</h3>
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<h4>Recent Customers</h4>
+
+<table class="table table-bordered mt-2">
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Company</th>
+    </tr>
+
+    {% for customer in recent_customers %}
+    <tr>
+        <td>{{ customer['name'] }}</td>
+        <td>{{ customer['email'] }}</td>
+        <td>{{ customer['company'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+
+<a href="/customers" class="btn btn-primary">View Customers</a>
+<a href="/add_customer" class="btn btn-success">Add Customer</a>
+<a href="/logout" class="btn btn-danger">Logout</a>
+
+{% endblock %}

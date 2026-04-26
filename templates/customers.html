@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Customers</h2>
+
+<a href="/add_customer" class="btn btn-success mb-3">Add Customer</a>
+
+<form method="GET" action="/customers" class="mb-3">
+    <input type="text" name="search" class="form-control" placeholder="Search by name, email, company">
+    <button class="btn btn-primary mt-2">Search</button>
+</form>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Company</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for customer in customers %}
+    <tr>
+        <td>{{ customer['name'] }}</td>
+        <td>{{ customer['email'] }}</td>
+        <td>{{ customer['phone'] }}</td>
+        <td>{{ customer['company'] }}</td>
+        <td>
+            <a href="/edit_customer/{{ customer['id'] }}" class="btn btn-warning btn-sm">Edit</a>
+            <a href="/delete_customer/{{ customer['id'] }}" 
+               class="btn btn-danger btn-sm"
+               onclick="return confirm('Are you sure?')">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+<a href="/dashboard" class="btn btn-secondary">Back</a>
+
+{% endblock %}
