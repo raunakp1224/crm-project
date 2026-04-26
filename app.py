@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import flash
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -70,25 +72,54 @@ def dashboard():
 
 @app.route('/customers')
 def customers():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     search = request.args.get('search')
+    company = request.args.get('company')
+    sort = request.args.get('sort')
 
     conn = get_db_connection()
 
+    query = "SELECT * FROM customers WHERE 1=1"
+    params = []
+
+    # 🔍 Search
     if search:
-        customers = conn.execute(
-            '''SELECT * FROM customers
-               WHERE name LIKE ? OR email LIKE ? OR company LIKE ?''',
-            (f'%{search}%', f'%{search}%', f'%{search}%')
-        ).fetchall()
-    else:
-        customers = conn.execute('SELECT * FROM customers').fetchall()
+        query += " AND (name LIKE ? OR email LIKE ? OR company LIKE ?)"
+        params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
+
+    # 🏢 Filter by company
+    if company:
+        query += " AND company = ?"
+        params.append(company)
+
+    # 🔽 Sorting
+    if sort == 'asc':
+        query += " ORDER BY name ASC"
+    elif sort == 'desc':
+        query += " ORDER BY name DESC"
+
+    customers = conn.execute(query, params).fetchall()
+
+    # Get unique companies for dropdown
+    companies = conn.execute(
+        "SELECT DISTINCT company FROM customers"
+    ).fetchall()
 
     conn.close()
 
-    return render_template('customers.html', customers=customers)
+    return render_template(
+        'customers.html',
+        customers=customers,
+        companies=companies
+    )
 
 @app.route('/add_customer', methods=['GET', 'POST'])
 def add_customer():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -110,6 +141,10 @@ def add_customer():
 
 @app.route('/edit_customer/<int:id>', methods=['GET', 'POST'])
 def edit_customer(id):
+    # 🔒 Protect route
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     conn = get_db_connection()
 
     if request.method == 'POST':
@@ -130,13 +165,22 @@ def edit_customer(id):
 
         return redirect(url_for('customers'))
 
-    customer = conn.execute('SELECT * FROM customers WHERE id = ?', (id,)).fetchone()
+    # GET request (load existing data)
+    customer = conn.execute(
+        'SELECT * FROM customers WHERE id = ?',
+        (id,)
+    ).fetchone()
+
     conn.close()
 
     return render_template('edit_customer.html', customer=customer)
 
 @app.route('/delete_customer/<int:id>')
 def delete_customer(id):
+    # 🔒 Protect route
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     conn = get_db_connection()
     conn.execute('DELETE FROM customers WHERE id = ?', (id,))
     conn.commit()
@@ -150,10 +194,17 @@ def signup():
         username = request.form['username']
         password = request.form['password']
 
+        # ✅ PUT IT HERE
+        if not username or not password:
+            flash("All fields are required", "danger")
+            return redirect(url_for('signup'))
+
+        hashed_password = generate_password_hash(password)
+
         conn = get_db_connection()
         conn.execute(
             'INSERT INTO users (username, password) VALUES (?, ?)',
-            (username, password)
+            (username, hashed_password)
         )
         conn.commit()
         conn.close()
@@ -168,15 +219,21 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
+        # 🔒 Validation
+        if not username or not password:
+            flash("Username and password are required", "danger")
+            return redirect(url_for('login'))
+
         conn = get_db_connection()
         user = conn.execute(
-            'SELECT * FROM users WHERE username = ? AND password = ?',
-            (username, password)
+            'SELECT * FROM users WHERE username = ?',
+            (username,)
         ).fetchone()
         conn.close()
 
-        if user:
-            session['user'] = user['username']
+        # 🔐 Check password
+        if user and check_password_hash(user['password'], password):
+            session['user'] = username   # ✅ STORE SESSION
             return redirect(url_for('dashboard'))
         else:
             return "Invalid credentials"
@@ -190,5 +247,5 @@ def logout():
 
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run()

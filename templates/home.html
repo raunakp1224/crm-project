@@ -1,11 +1,19 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>CRM Home</title>
-    </head>
-    <body>
-        <h1>Welcome to CRM</h1>
-        <a href="/dashboard">Go to Dashboard</a><br>
-        <a href="/customers">Go to Customers</a>
-    </body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="text-center mt-5">
+
+    <h1 class="mb-4">Welcome to CRM</h1>
+
+    {% if session.get('user') %}
+        <a href="/dashboard" class="btn btn-primary me-2">Go to Dashboard</a>
+        <a href="/customers" class="btn btn-secondary">View Customers</a>
+    {% else %}
+        <a href="/login" class="btn btn-primary me-2">Login</a>
+        <a href="/signup" class="btn btn-success">Signup</a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

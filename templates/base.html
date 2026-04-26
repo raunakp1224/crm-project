@@ -2,22 +2,80 @@
 <html>
 <head>
     <title>CRM App</title>
+
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <span class="navbar-brand">CRM System</span>
-        {% if session.get('user') %}
-            <span class="text-white">Welcome, {{ session['user'] }}</span>
-        {% endif %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+
+        <!-- Logo -->
+        <a class="navbar-brand" href="/dashboard">CRM</a>
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+
+                {% if session.get('user') %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/customers">Customers</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/add_customer">Add Customer</a>
+                </li>
+                {% endif %}
+
+            </ul>
+
+            <!-- Right Side -->
+            <div class="d-flex align-items-center">
+
+                {% if session.get('user') %}
+                    <span class="text-white me-3">
+                        {{ session['user'] }}
+                    </span>
+
+                    <a href="/logout" class="btn btn-danger btn-sm">
+                        Logout
+                    </a>
+                {% else %}
+                    <a href="/login" class="btn btn-primary btn-sm">
+                        Login
+                    </a>
+                {% endif %}
+
+            </div>
+
+        </div>
+
     </div>
 </nav>
 
+<!-- Main Content -->
 <div class="container mt-4">
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show mt-3">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
     {% block content %}{% endblock %}
 </div>
 
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </html>
