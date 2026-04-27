@@ -9,14 +9,14 @@
 <form method="GET" class="row mb-3">
 
     <!-- Search -->
-    <div class="col-md-4">
+    <div class="col-md-3">
         <input type="text" name="search" class="form-control"
                placeholder="Search..."
                value="{{ request.args.get('search', '') }}">
     </div>
 
-    <!-- Company Filter -->
-    <div class="col-md-3">
+    <!-- Company -->
+    <div class="col-md-2">
         <select name="company" class="form-control">
             <option value="">All Companies</option>
             {% for c in companies %}
@@ -28,8 +28,18 @@
         </select>
     </div>
 
+    <!-- Status -->
+    <div class="col-md-2">
+        <select name="status" class="form-control">
+            <option value="">All Status</option>
+            <option value="Lead" {% if request.args.get('status') == 'Lead' %}selected{% endif %}>Lead</option>
+            <option value="Contacted" {% if request.args.get('status') == 'Contacted' %}selected{% endif %}>Contacted</option>
+            <option value="Converted" {% if request.args.get('status') == 'Converted' %}selected{% endif %}>Converted</option>
+        </select>
+    </div>
+
     <!-- Sort -->
-    <div class="col-md-3">
+    <div class="col-md-2">
         <select name="sort" class="form-control">
             <option value="">Sort</option>
             <option value="asc" {% if request.args.get('sort') == 'asc' %}selected{% endif %}>A-Z</option>
@@ -37,9 +47,14 @@
         </select>
     </div>
 
-    <!-- Button -->
+    <!-- Apply Button -->
     <div class="col-md-2">
         <button class="btn btn-primary w-100">Apply</button>
+    </div>
+
+    <!-- Reset -->
+    <div class="col-md-1">
+        <a href="/customers" class="btn btn-secondary w-100">Reset</a>
     </div>
 
 </form>
@@ -50,6 +65,7 @@
         <th>Email</th>
         <th>Phone</th>
         <th>Company</th>
+        <th>Status</th>
         <th>Actions</th>
     </tr>
 
@@ -59,6 +75,7 @@
         <td>{{ customer['email'] }}</td>
         <td>{{ customer['phone'] }}</td>
         <td>{{ customer['company'] }}</td>
+        <td>{{ customer['status'] }}</td>
         <td>
             <a href="/edit_customer/{{ customer['id'] }}" class="btn btn-warning btn-sm">Edit</a>
             <a href="/delete_customer/{{ customer['id'] }}" 

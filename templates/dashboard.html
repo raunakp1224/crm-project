@@ -2,50 +2,131 @@
 
 {% block content %}
 
-<h2>Dashboard</h2>
+<div class="container mt-4">
 
-<div class="row mt-4">
+    <h2 class="mb-4">Dashboard</h2>
 
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h5>Total Customers</h5>
-            <h3>{{ total_customers }}</h3>
+    <!-- 🔹 STAT CARDS -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card text-white bg-primary p-3">
+                <h5>Total Customers</h5>
+                <h2>{{ total_customers }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card text-white bg-success p-3">
+                <h5>Total Companies</h5>
+                <h2>{{ total_companies }}</h2>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h5>Total Companies</h5>
-            <h3>{{ total_companies }}</h3>
+    <!-- 🔹 CHARTS -->
+    <div class="row mt-4">
+
+        <!-- 📊 Line Chart -->
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h5 class="mb-3">Customer Growth</h5>
+                <div style="height:300px;">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
         </div>
+
+        <!-- 🥧 Pie Chart -->
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5 class="mb-3">Status Distribution</h5>
+                <div style="height:300px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 🔹 RECENT CUSTOMERS -->
+    <div class="mt-5">
+        <h4>Recent Customers</h4>
+
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Company</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in recent_customers %}
+                <tr>
+                    <td>{{ customer['name'] }}</td>
+                    <td>{{ customer['email'] }}</td>
+                    <td>{{ customer['company'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
 </div>
 
-<br>
+<!-- 🔥 CHART JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<h4>Recent Customers</h4>
+<script>
+const growthLabels = {{ growth_labels | tojson }};
+const growthData = {{ growth_data | tojson }};
 
-<table class="table table-bordered mt-2">
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Company</th>
-    </tr>
+const statusLabels = {{ status_labels | tojson }};
+const statusData = {{ status_counts | tojson }};
 
-    {% for customer in recent_customers %}
-    <tr>
-        <td>{{ customer['name'] }}</td>
-        <td>{{ customer['email'] }}</td>
-        <td>{{ customer['company'] }}</td>
-    </tr>
-    {% endfor %}
-</table>
+// 📊 Line Chart
+new Chart(document.getElementById('growthChart'), {
+    type: 'line',
+    data: {
+        labels: growthLabels,
+        datasets: [{
+            label: 'Customers',
+            data: growthData,
+            borderWidth: 2,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        }
+    }
+});
 
-<br>
-
-<a href="/customers" class="btn btn-primary">View Customers</a>
-<a href="/add_customer" class="btn btn-success">Add Customer</a>
-<a href="/logout" class="btn btn-danger">Logout</a>
+// 🥧 Pie Chart
+new Chart(document.getElementById('statusChart'), {
+    type: 'pie',
+    data: {
+        labels: statusLabels,
+        datasets: [{
+            data: statusData,
+            backgroundColor: ['#0d6efd', '#198754', '#ffc107']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        }
+    }
+});
+</script>
 
 {% endblock %}
