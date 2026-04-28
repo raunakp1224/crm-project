@@ -121,9 +121,15 @@ new Chart(document.getElementById('growthChart'), {
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: true,
+            position: 'bottom'
+        }
     }
+}
 });
 
 // Pie Chart
@@ -141,9 +147,15 @@ new Chart(document.getElementById('statusChart'), {
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: true,
+            position: 'bottom'
+        }
     }
+}
 });
 </script>
 

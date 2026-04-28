@@ -7,9 +7,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
+
+        * { transition: all 0.2s ease-in-out; }
+
         body {
             margin: 0;
-            background: #f3f4f6;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f7fb;
         }
 
         /* Sidebar */
@@ -17,39 +21,34 @@
             width: 220px;
             position: fixed;
             height: 100vh;
-            left: 0;
-            top: 0;
-            background: #1f2937;
+            background: linear-gradient(180deg, #111827, #1f2937);
             padding-top: 20px;
         }
 
         .sidebar h4 {
-            color: white;
+            color: #fff;
+            text-align: center;
         }
 
         .sidebar a {
             display: block;
-            color: white;
+            color: #cbd5e1;
             padding: 12px 20px;
+            margin: 6px 12px;
+            border-radius: 8px;
             text-decoration: none;
-            margin: 5px 10px;
-            border-radius: 6px;
-        }
-
-        .sidebar a:hover {
-            background: #374151;
         }
 
         .sidebar a.active {
-            background: #4b5563;
+            background: #3b82f6;
+            color: #fff;
         }
 
         /* Topbar */
         .topbar {
             margin-left: 220px;
             height: 60px;
-            background: #111827;
-            color: white;
+            background: white;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -60,27 +59,204 @@
         .content {
             margin-left: 220px;
             padding: 20px;
-            min-height: 100vh;
-        }
-
-        /* Public pages (login/signup) */
-        .public-container {
-            max-width: 450px;
-            margin: 80px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
 
         /* Cards */
         .card {
-            transition: 0.3s;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.05);
         }
 
-        .card:hover {
-            transform: translateY(-5px);
+        /* ================= DARK MODE ================= */
+
+        body.dark-mode {
+            background: #020617;
+            color: #e5e7eb;
         }
+
+        body.dark-mode .sidebar {
+            background: #020617;
+        }
+
+        body.dark-mode .topbar {
+            background: #020617;
+            color: white;
+        }
+
+        body.dark-mode .card {
+            background: #1e293b;
+            color: white;
+        }
+
+        body.dark-mode .content {
+            background: transparent;
+        }
+
+        body.dark-mode input,
+        body.dark-mode textarea,
+        body.dark-mode select {
+            background: #020617;
+            color: white;
+            border: 1px solid #475569;
+        }
+
+        /* 🔥 FINAL TABLE FIX (STRONG OVERRIDE) */
+        body.dark-mode .table,
+        body.dark-mode .table > :not(caption) > * > * {
+            background-color: #1e293b !important;
+            color: #e5e7eb !important;
+            border-color: #334155 !important;
+        }
+
+        body.dark-mode .table thead th {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .table tbody tr:hover {
+            background-color: #334155 !important;
+        }
+
+        /* Fix striped tables */
+        body.dark-mode .table-striped > tbody > tr:nth-of-type(odd),
+        body.dark-mode .table-striped > tbody > tr:nth-of-type(even) {
+            background-color: #1e293b !important;
+        }
+
+        body.dark-mode .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        /* 🔥 FIX NOTES (LIST GROUP) */
+        body.dark-mode .list-group-item {
+            background-color: #1e293b !important;
+            color: #e5e7eb !important;
+            border-color: #334155 !important;
+        }
+
+        body.dark-mode .list-group {
+            border-color: #334155;
+        }
+
+        body.dark-mode .list-group-item small {
+            color: #94a3b8;
+        }
+
+        /* Public container */
+        .public-container {
+            max-width: 400px;
+            margin: 80px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        body.dark-mode .public-container {
+            background: #1e293b;
+        }
+
+        /* ===== FINAL DARK MODE FIXES ===== */
+
+        /* Fix muted text */
+        body.dark-mode .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        /* Fix notes list */
+        body.dark-mode .list-group-item {
+            background-color: #1e293b !important;
+            color: #e5e7eb !important;
+            border-color: #334155 !important;
+        }
+
+        body.dark-mode .list-group {
+            border-color: #334155;
+        }
+
+        body.dark-mode .list-group-item small {
+            color: #94a3b8;
+        }
+
+        /* 🔥 PAGINATION DARK MODE */
+        body.dark-mode .pagination .page-link {
+            background-color: #1e293b;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+        }
+
+        body.dark-mode .pagination .page-link:hover {
+            background-color: #334155;
+            color: white;
+        }
+
+        body.dark-mode .pagination .page-item.active .page-link {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        body.dark-mode .pagination .page-item.disabled .page-link {
+            background-color: #020617;
+            color: #64748b;
+        }
+
+        /* 🔥 MODAL DARK MODE */
+        body.dark-mode .modal-content {
+            background-color: #1e293b;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+        }
+
+        body.dark-mode .modal-header,
+        body.dark-mode .modal-footer {
+            border-color: #334155;
+        }
+
+        body.dark-mode .modal-title {
+            color: #ffffff;
+        }
+
+        body.dark-mode .btn-close {
+            filter: invert(1);
+        }
+
+        body.dark-mode .modal-content {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+
+        /* ===== PAGINATION ===== */
+        body.dark-mode .pagination .page-link {
+            background-color: #1e293b;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+        }
+
+        body.dark-mode .pagination .page-link:hover {
+            background-color: #334155;
+        }
+
+        body.dark-mode .pagination .page-item.active .page-link {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        /* ===== MODAL ===== */
+        body.dark-mode .modal-content {
+            background-color: #1e293b;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+        }
+
+        body.dark-mode .modal-header,
+        body.dark-mode .modal-footer {
+            border-color: #334155;
+        }
+
+        body.dark-mode .btn-close {
+            filter: invert(1);
+        }
+
     </style>
 </head>
 
@@ -88,59 +264,54 @@
 
 {% if session.get('user') %}
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h4 class="text-center">CRM</h4>
+<div class="sidebar">
+    <h4>CRM</h4>
 
-        <a href="{{ url_for('dashboard') }}"
-           class="{% if request.path == '/dashboard' %}active{% endif %}">
-            Dashboard
-        </a>
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('customers') }}">Customers</a>
+    <a href="{{ url_for('add_customer') }}">Add Customer</a>
+</div>
 
-        <a href="{{ url_for('customers') }}"
-           class="{% if request.path.startswith('/customers') %}active{% endif %}">
-            Customers
-        </a>
+<div class="topbar">
+    <div>Welcome, {{ session.get('user') }}</div>
 
-        <a href="{{ url_for('add_customer') }}"
-           class="{% if request.path == '/add_customer' %}active{% endif %}">
-            Add Customer
-        </a>
-    </div>
-
-    <!-- Topbar -->
-    <div class="topbar">
-        <div>Welcome, {{ session.get('user') }}</div>
+    <div>
+        <button onclick="toggleDarkMode()" class="btn btn-outline-secondary btn-sm">🌙</button>
         <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
     </div>
+</div>
 
-    <!-- Main Content -->
-    <div class="content">
+<div class="content">
 
 {% else %}
 
-    <!-- Public pages -->
-    <div class="public-container">
+<div class="public-container">
 
 {% endif %}
 
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    {% block content %}{% endblock %}
 
-        {% block content %}{% endblock %}
-
-    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('theme', 'dark');
+    } else {
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+window.onload = function() {
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+};
+</script>
 
 </body>
 </html>
