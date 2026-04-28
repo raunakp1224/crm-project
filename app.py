@@ -1,18 +1,32 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash, Response
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import flash
+from functools import wraps
+import csv
+import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.environ.get('SECRET_KEY', 'dev_key')
 
-# Function to connect DB
+
+# 🔐 Login Required Decorator
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if 'user' not in session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return wrapper
+
+
+# 📦 DB Connection
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-# Create table (run once)
+
+# 🛠 Create Tables
 def create_table():
     conn = get_db_connection()
 
@@ -48,31 +62,27 @@ def create_table():
     conn.commit()
     conn.close()
 
+
 create_table()
+
 
 @app.route('/')
 def home():
     return render_template('home.html')
 
-@app.route('/dashboard')
-def dashboard():
-    # 🔒 Protect route
-    if 'user' not in session:
-        return redirect(url_for('login'))
 
+# 🔹 DASHBOARD
+@app.route('/dashboard')
+@login_required
+def dashboard():
     conn = get_db_connection()
 
-    # 🔹 Total customers
-    total_customers = conn.execute(
-        'SELECT COUNT(*) FROM customers'
-    ).fetchone()[0]
+    total_customers = conn.execute('SELECT COUNT(*) FROM customers').fetchone()[0]
 
-    # 🔹 Total companies
     total_companies = conn.execute(
         'SELECT COUNT(DISTINCT company) FROM customers'
     ).fetchone()[0]
 
-    # 🔹 Status distribution (for pie chart)
     status_data = conn.execute('''
         SELECT status, COUNT(*) as count
         FROM customers
@@ -82,7 +92,6 @@ def dashboard():
     status_labels = [row['status'] for row in status_data]
     status_counts = [row['count'] for row in status_data]
 
-    # 🔹 Growth data (simple version based on IDs)
     all_customers = conn.execute(
         'SELECT id FROM customers ORDER BY id ASC'
     ).fetchall()
@@ -90,7 +99,6 @@ def dashboard():
     growth_labels = list(range(1, len(all_customers) + 1))
     growth_data = growth_labels
 
-    # 🔹 Recent customers
     recent_customers = conn.execute(
         'SELECT * FROM customers ORDER BY id DESC LIMIT 5'
     ).fetchall()
@@ -108,15 +116,19 @@ def dashboard():
         recent_customers=recent_customers
     )
 
-@app.route('/customers')
-def customers():
-    if 'user' not in session:
-        return redirect(url_for('login'))
 
+# 🔹 CUSTOMERS
+@app.route('/customers')
+@login_required
+def customers():
     search = request.args.get('search')
     company = request.args.get('company')
-    status = request.args.get('status')   # 👈 HERE
+    status = request.args.get('status')
     sort = request.args.get('sort')
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+    offset = (page - 1) * per_page
 
     conn = get_db_connection()
 
@@ -131,14 +143,20 @@ def customers():
         query += " AND company = ?"
         params.append(company)
 
-    if status:   # 👈 HERE
+    if status:
         query += " AND status = ?"
         params.append(status)
+
+    count_query = query.replace("SELECT *", "SELECT COUNT(*)")
+    total = conn.execute(count_query, params).fetchone()[0]
 
     if sort == 'asc':
         query += " ORDER BY name ASC"
     elif sort == 'desc':
         query += " ORDER BY name DESC"
+
+    query += " LIMIT ? OFFSET ?"
+    params.extend([per_page, offset])
 
     customers = conn.execute(query, params).fetchall()
 
@@ -148,17 +166,21 @@ def customers():
 
     conn.close()
 
+    total_pages = (total + per_page - 1) // per_page
+
     return render_template(
         'customers.html',
         customers=customers,
-        companies=companies
+        companies=companies,
+        page=page,
+        total_pages=total_pages
     )
 
-@app.route('/add_customer', methods=['GET', 'POST'])
-def add_customer():
-    if 'user' not in session:
-        return redirect(url_for('login'))
 
+# 🔹 ADD CUSTOMER
+@app.route('/add_customer', methods=['GET', 'POST'])
+@login_required
+def add_customer():
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -167,27 +189,31 @@ def add_customer():
         notes = request.form['notes']
         status = request.form['status']
 
+        if not name or not email:
+            flash("Name and Email are required!", "danger")
+            return redirect(url_for('add_customer'))
+
         conn = get_db_connection()
         conn.execute(
             'INSERT INTO customers (name, email, phone, company, notes, status) VALUES (?, ?, ?, ?, ?, ?)',
             (name, email, phone, company, notes, status)
-)
+        )
+
         conn.commit()
         conn.close()
 
+        flash("Customer added successfully!", "success")
         return redirect(url_for('customers'))
 
     return render_template('add_customer.html')
 
-@app.route('/edit_customer/<int:id>', methods=['GET', 'POST'])
-def edit_customer(id):
-    # 🔒 Protect route
-    if 'user' not in session:
-        return redirect(url_for('login'))
 
+# 🔹 EDIT CUSTOMER
+@app.route('/edit_customer/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_customer(id):
     conn = get_db_connection()
 
-    # 👉 POST: Update customer
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -205,15 +231,14 @@ def edit_customer(id):
         conn.commit()
         conn.close()
 
+        flash("Customer updated successfully!", "info")
         return redirect(url_for('customers'))
 
-    # 👉 GET: Load customer data
     customer = conn.execute(
         'SELECT * FROM customers WHERE id = ?',
         (id,)
     ).fetchone()
 
-    # 👉 GET: Load notes for this customer
     notes = conn.execute(
         'SELECT * FROM notes WHERE customer_id = ? ORDER BY created_at DESC',
         (id,)
@@ -221,89 +246,113 @@ def edit_customer(id):
 
     conn.close()
 
-    # 👉 Send data to HTML page
-    return render_template(
-        'edit_customer.html',
-        customer=customer,
-        notes=notes
-    )
+    return render_template('edit_customer.html', customer=customer, notes=notes)
 
+
+# 🔹 DELETE CUSTOMER
 @app.route('/delete_customer/<int:id>')
+@login_required
 def delete_customer(id):
-    # 🔒 Protect route
-    if 'user' not in session:
-        return redirect(url_for('login'))
-
     conn = get_db_connection()
+
+    customer = conn.execute(
+        'SELECT * FROM customers WHERE id = ?',
+        (id,)
+    ).fetchone()
+
+    if not customer:
+        flash("Customer not found!", "danger")
+        return redirect(url_for('customers'))
+
     conn.execute('DELETE FROM customers WHERE id = ?', (id,))
     conn.commit()
     conn.close()
 
+    flash("Customer deleted successfully!", "warning")
     return redirect(url_for('customers'))
 
+
+# 🔹 SIGNUP
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    error = None
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        # ✅ PUT IT HERE
         if not username or not password:
-            flash("All fields are required", "danger")
-            return redirect(url_for('signup'))
+            error = "All fields are required"
+            return render_template('signup.html', error=error)
+
+        conn = get_db_connection()
+
+        existing_user = conn.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+
+        if existing_user:
+            conn.close()
+            error = "Username already exists"
+            return render_template('signup.html', error=error)
 
         hashed_password = generate_password_hash(password)
 
-        conn = get_db_connection()
         conn.execute(
-            'INSERT INTO users (username, password) VALUES (?, ?)',
+            "INSERT INTO users (username, password) VALUES (?, ?)",
             (username, hashed_password)
         )
         conn.commit()
         conn.close()
 
+        flash("Account created successfully! Please login.", "success")
         return redirect(url_for('login'))
 
     return render_template('signup.html')
 
+
+# 🔹 LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        # 🔒 Validation
         if not username or not password:
-            flash("Username and password are required", "danger")
-            return redirect(url_for('login'))
+            error = "All fields are required"
+            return render_template('login.html', error=error)
 
         conn = get_db_connection()
         user = conn.execute(
-            'SELECT * FROM users WHERE username = ?',
+            "SELECT * FROM users WHERE username = ?",
             (username,)
         ).fetchone()
         conn.close()
 
-        # 🔐 Check password
         if user and check_password_hash(user['password'], password):
-            session['user'] = username   # ✅ STORE SESSION
-            return redirect(url_for('dashboard'))
+            session['user'] = username
+            return redirect('/dashboard')
         else:
-            return "Invalid credentials"
+            error = "Invalid username or password"
 
-    return render_template('login.html')
+    return render_template('login.html', error=error)
 
+
+# 🔹 LOGOUT
 @app.route('/logout')
+@login_required
 def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
+    session.clear()
+    return redirect('/login')
 
 
+# 🔹 ADD NOTE
 @app.route('/add_note/<int:customer_id>', methods=['POST'])
+@login_required
 def add_note(customer_id):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-
     content = request.form['content']
 
     conn = get_db_connection()
@@ -314,8 +363,34 @@ def add_note(customer_id):
     conn.commit()
     conn.close()
 
+    flash("Note added successfully!", "success")
     return redirect(url_for('edit_customer', id=customer_id))
 
 
+# 🔹 EXPORT CSV
+@app.route('/export_csv')
+@login_required
+def export_csv():
+    conn = get_db_connection()
+    customers = conn.execute("SELECT * FROM customers").fetchall()
+    conn.close()
+
+    def generate():
+        header = ['Name', 'Email', 'Phone', 'Company', 'Status']
+        yield ','.join(header) + '\n'
+
+        for c in customers:
+            yield ','.join([
+                c['name'],
+                c['email'],
+                c['phone'],
+                c['company'],
+                c['status']
+            ]) + '\n'
+
+    return Response(generate(), mimetype='text/csv',
+                    headers={"Content-Disposition": "attachment;filename=customers.csv"})
+
+
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

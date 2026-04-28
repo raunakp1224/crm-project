@@ -2,45 +2,62 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid">
 
+    <!-- Header -->
     <h2 class="mb-4">Dashboard</h2>
 
     <!-- 🔹 STAT CARDS -->
-    <div class="row">
+    <div class="row g-3">
+
+        <!-- Total Customers -->
         <div class="col-md-6">
-            <div class="card text-white bg-primary p-3">
-                <h5>Total Customers</h5>
-                <h2>{{ total_customers }}</h2>
+            <div class="card text-white p-4 shadow-sm"
+                 style="background: linear-gradient(135deg, #4f46e5, #3b82f6); border-radius: 12px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6>Total Customers</h6>
+                        <h2>{{ total_customers }}</h2>
+                    </div>
+                    <i class="bi bi-people-fill" style="font-size: 40px;"></i>
+                </div>
             </div>
         </div>
 
+        <!-- Total Companies -->
         <div class="col-md-6">
-            <div class="card text-white bg-success p-3">
-                <h5>Total Companies</h5>
-                <h2>{{ total_companies }}</h2>
+            <div class="card text-white p-4 shadow-sm"
+                 style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 12px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6>Total Companies</h6>
+                        <h2>{{ total_companies }}</h2>
+                    </div>
+                    <i class="bi bi-building" style="font-size: 40px;"></i>
+                </div>
             </div>
         </div>
+
     </div>
 
     <!-- 🔹 CHARTS -->
-    <div class="row mt-4">
+    <div class="row g-3 mt-1">
 
-        <!-- 📊 Line Chart -->
+        <!-- Customer Growth -->
         <div class="col-md-8">
-            <div class="card p-3">
-                <h5 class="mb-3">Customer Growth</h5>
-                <div style="height:300px;">
+            <div class="card p-4 shadow-sm" style="border-radius: 12px;">
+                <h6 class="mb-3">Customer Growth</h6>
+                <div style="height:280px;">
                     <canvas id="growthChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- 🥧 Pie Chart -->
+        <!-- Status Distribution -->
         <div class="col-md-4">
-            <div class="card p-3">
-                <h5 class="mb-3">Status Distribution</h5>
-                <div style="height:300px;">
+            <div class="card p-4 shadow-sm" style="border-radius: 12px;">
+                <h6 class="mb-3">Status Distribution</h6>
+                <div style="height:280px;">
                     <canvas id="statusChart"></canvas>
                 </div>
             </div>
@@ -49,27 +66,32 @@
     </div>
 
     <!-- 🔹 RECENT CUSTOMERS -->
-    <div class="mt-5">
-        <h4>Recent Customers</h4>
+    <div class="mt-4">
+        <div class="card p-4 shadow-sm" style="border-radius: 12px;">
+            <h6 class="mb-3">Recent Customers</h6>
 
-        <table class="table table-bordered mt-3">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Company</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for customer in recent_customers %}
-                <tr>
-                    <td>{{ customer['name'] }}</td>
-                    <td>{{ customer['email'] }}</td>
-                    <td>{{ customer['company'] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Company</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in recent_customers %}
+                        <tr>
+                            <td>{{ customer['name'] }}</td>
+                            <td>{{ customer['email'] }}</td>
+                            <td>{{ customer['company'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
 
 </div>
@@ -84,7 +106,7 @@ const growthData = {{ growth_data | tojson }};
 const statusLabels = {{ status_labels | tojson }};
 const statusData = {{ status_counts | tojson }};
 
-// 📊 Line Chart
+// Line Chart
 new Chart(document.getElementById('growthChart'), {
     type: 'line',
     data: {
@@ -92,39 +114,35 @@ new Chart(document.getElementById('growthChart'), {
         datasets: [{
             label: 'Customers',
             data: growthData,
-            borderWidth: 2,
-            tension: 0.3
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.2)',
+            fill: true,
+            tension: 0.4
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'top'
-            }
-        }
+        maintainAspectRatio: false
     }
 });
 
-// 🥧 Pie Chart
+// Pie Chart
 new Chart(document.getElementById('statusChart'), {
-    type: 'pie',
+    type: 'doughnut',
     data: {
         labels: statusLabels,
         datasets: [{
             data: statusData,
-            backgroundColor: ['#0d6efd', '#198754', '#ffc107']
+            backgroundColor: [
+                '#3b82f6',
+                '#10b981',
+                '#f59e0b'
+            ]
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'top'
-            }
-        }
+        maintainAspectRatio: false
     }
 });
 </script>

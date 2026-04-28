@@ -3,79 +3,144 @@
 <head>
     <title>CRM App</title>
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f3f4f6;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            background: #1f2937;
+            padding-top: 20px;
+        }
+
+        .sidebar h4 {
+            color: white;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            margin: 5px 10px;
+            border-radius: 6px;
+        }
+
+        .sidebar a:hover {
+            background: #374151;
+        }
+
+        .sidebar a.active {
+            background: #4b5563;
+        }
+
+        /* Topbar */
+        .topbar {
+            margin-left: 220px;
+            height: 60px;
+            background: #111827;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        /* Content */
+        .content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Public pages (login/signup) */
+        .public-container {
+            max-width: 450px;
+            margin: 80px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        /* Cards */
+        .card {
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
 </head>
+
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
+{% if session.get('user') %}
 
-        <!-- Logo -->
-        <a class="navbar-brand" href="/dashboard">CRM</a>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="text-center">CRM</h4>
 
-        <!-- Menu -->
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
+        <a href="{{ url_for('dashboard') }}"
+           class="{% if request.path == '/dashboard' %}active{% endif %}">
+            Dashboard
+        </a>
 
-                {% if session.get('user') %}
-                <li class="nav-item">
-                    <a class="nav-link" href="/dashboard">Dashboard</a>
-                </li>
+        <a href="{{ url_for('customers') }}"
+           class="{% if request.path.startswith('/customers') %}active{% endif %}">
+            Customers
+        </a>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="/customers">Customers</a>
-                </li>
+        <a href="{{ url_for('add_customer') }}"
+           class="{% if request.path == '/add_customer' %}active{% endif %}">
+            Add Customer
+        </a>
+    </div>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="/add_customer">Add Customer</a>
-                </li>
-                {% endif %}
+    <!-- Topbar -->
+    <div class="topbar">
+        <div>Welcome, {{ session.get('user') }}</div>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
+    </div>
 
-            </ul>
+    <!-- Main Content -->
+    <div class="content">
 
-            <!-- Right Side -->
-            <div class="d-flex align-items-center">
+{% else %}
 
-                {% if session.get('user') %}
-                    <span class="text-white me-3">
-                        {{ session['user'] }}
-                    </span>
+    <!-- Public pages -->
+    <div class="public-container">
 
-                    <a href="/logout" class="btn btn-danger btn-sm">
-                        Logout
-                    </a>
-                {% else %}
-                    <a href="/login" class="btn btn-primary btn-sm">
-                        Login
-                    </a>
-                {% endif %}
+{% endif %}
 
-            </div>
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-        </div>
+        {% block content %}{% endblock %}
 
     </div>
-</nav>
 
-<!-- Main Content -->
-<div class="container mt-4">
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show mt-3">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
-    {% block content %}{% endblock %}
-</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </html>
