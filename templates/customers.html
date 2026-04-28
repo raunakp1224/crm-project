@@ -16,7 +16,9 @@
 
     <!-- Filters -->
     <div class="card p-3 shadow-sm mb-3">
-        <form method="GET" class="row g-2">
+        <form method="GET" class="row g-2" >
+
+            <input type="hidden" name="page" value="1">
 
             <div class="col-md-3">
                 <input type="text" name="search" class="form-control"
@@ -46,10 +48,10 @@
             </div>
 
             <div class="col-md-2">
-                <select name="sort" class="form-select">
-                    <option value="">Sort</option>
-                    <option value="asc" {% if request.args.get('sort') == 'asc' %}selected{% endif %}>A-Z</option>
-                    <option value="desc" {% if request.args.get('sort') == 'desc' %}selected{% endif %}>Z-A</option>
+                <select name="sort" class="form-control">
+                    <option value="">Sort By</option>
+                    <option value="asc" {% if sort == 'asc' %}selected{% endif %}>Name A-Z</option>
+                    <option value="desc" {% if sort == 'desc' %}selected{% endif %}>Name Z-A</option>
                 </select>
             </div>
 
@@ -119,38 +121,45 @@
     </div>
 
     <!-- Pagination -->
-    <nav class="mt-3">
-        <ul class="pagination">
+    <nav>
+    <ul class="pagination justify-content-center mt-3">
 
-            {% if page > 1 %}
-            <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page - 1 }}&search={{ request.args.get('search','') }}&company={{ request.args.get('company','') }}&status={{ request.args.get('status','') }}&sort={{ request.args.get('sort','') }}">
-                   Previous
-                </a>
-            </li>
+        <!-- Prev -->
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link"
+               href="?page={{ page-1 }}&search={{ search }}&company={{ selected_company }}&status={{ selected_status }}&sort={{ sort }}">
+               Prev
+            </a>
+        </li>
+
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == 1 or p == total_pages or (p >= page-2 and p <= page+2) %}
+
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link"
+                       href="?page={{ p }}&search={{ search }}&company={{ selected_company }}&status={{ selected_status }}&sort={{ sort }}">
+                       {{ p }}
+                    </a>
+                </li>
+
+            {% elif p == 2 and page > 4 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+
+            {% elif p == total_pages-1 and page < total_pages-3 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
             {% endif %}
+        {% endfor %}
 
-            {% for p in range(1, total_pages + 1) %}
-            <li class="page-item {% if p == page %}active{% endif %}">
-                <a class="page-link"
-                   href="?page={{ p }}&search={{ request.args.get('search','') }}&company={{ request.args.get('company','') }}&status={{ request.args.get('status','') }}&sort={{ request.args.get('sort','') }}">
-                   {{ p }}
-                </a>
-            </li>
-            {% endfor %}
+        <!-- Next -->
+        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+            <a class="page-link"
+               href="?page={{ page+1 }}&search={{ search }}&company={{ selected_company }}&status={{ selected_status }}&sort={{ sort }}">
+               Next
+            </a>
+        </li>
 
-            {% if page < total_pages %}
-            <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page + 1 }}&search={{ request.args.get('search','') }}&company={{ request.args.get('company','') }}&status={{ request.args.get('status','') }}&sort={{ request.args.get('sort','') }}">
-                   Next
-                </a>
-            </li>
-            {% endif %}
-
-        </ul>
-    </nav>
+    </ul>
+</nav>
 
 </div>
 
